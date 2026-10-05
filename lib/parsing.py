@@ -58,8 +58,11 @@ def resolve_function(exp: str) -> Node | None:
     end_i = None
 
     # Identifying f(u(x)):
-    for fn in REFERENCE['function'].keys():
+    fn_sorted_lst = sorted(REFERENCE['function'].keys(), key=len, reverse=True)  # Sorted list had to be added as 'cosec' and 'cos' mixed up
+
+    for fn in fn_sorted_lst:
         if exp.startswith(fn): # f is found
+            print("FUNCTION: ", fn)
             # Find u(x):
             for i, c in enumerate(exp):
                 if c == '(':
@@ -76,8 +79,13 @@ def resolve_function(exp: str) -> Node | None:
                     end_i = i  
                     break
 
+            print('START:', start_i)
+            print('END:', end_i)
             u = exp[start_i + 1:end_i]
             f = exp[:start_i]
+
+            print('U:', u)
+            print('F', f)
 
             # Create Node:
             new_node = Node(f, REFERENCE['dtype']['fn'])
@@ -85,10 +93,12 @@ def resolve_function(exp: str) -> Node | None:
             if fn == 'log_': # Special case for log (2 parameters)
                 # TODO THIS NEEDS TO BE WORKED LATER ON AS IT CANNOT HANDLE BASES such as 40, 100 etc
                 base = exp[4]
+                new_node.value = new_node.value[:4]
                 new_node.left_node = Node(base, REFERENCE['dtype']['leaf'])
 
             new_node.right_node = Node(u, REFERENCE['dtype']['complex'])
 
+            break
 
     return new_node
 
@@ -141,9 +151,6 @@ def CreateTree(exp: str) -> Node:
         new_node.right_node = CreateTree(new_node.right_node.value)
 
     return new_node
-
-
-
 
 
 
@@ -205,9 +212,15 @@ def clean(node: Node) -> Node:
 # Final thing:
 def CollapseTree(node: Node) -> str:
     "Collapses a given `Node` into a expression: `str`."
-    # Check if this node is a leaf: (No children)
+    # Leaf: (No children)
     if node.left_node is None and node.right_node is None:
         return node.value
+
+    # Function:
+    if node.left_node is  None and node.right_node is not None:
+        right = CollapseTree(node.right_node)
+        return f"{node.value}({right})"
+        
 
     # Building one single term:
     if node.left_node is not None:

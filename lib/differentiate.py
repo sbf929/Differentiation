@@ -3,6 +3,8 @@ from . import derivatives
 
 from . import parsing
 
+from .CONFIG import ref as REFERENCE
+
 def Differentiate(root_node: Node, var: str) -> Node:
     """
     - `root_node`: The root node of a term.
@@ -34,7 +36,6 @@ def Differentiate(root_node: Node, var: str) -> Node:
         else: # In case of complex exponential or constant to constant
             print("COMPLEX CASE!!!") # Need log function for this
             
-
     elif root_val == '*':
         u = root_node.left_node
         v = root_node.right_node
@@ -84,7 +85,6 @@ def Differentiate(root_node: Node, var: str) -> Node:
 
         return new_node
 
-
     elif root_val == '+' or root_val == '-':
         left_diff = Differentiate(root_node.left_node, var = var) # Left side
         right_diff = Differentiate(root_node.right_node, var = var) # Right side
@@ -96,7 +96,28 @@ def Differentiate(root_node: Node, var: str) -> Node:
 
         return new_node
         
-    else: # For x and c:
+    else: # Can be x / const / function:
+        # Functions: Need to pass (u(x)) instead of var:
+        fn_sorted_lst = sorted(REFERENCE['function'].keys(), key=len, reverse=True) # Sorted list had to be added as 'cosec' and 'cos' mixed up
+        
+        for fn in fn_sorted_lst:
+            if root_val.startswith(fn): # if function
+                if root_val == 'log_': # Special case for log_
+                    u = root_node.right_node
+                    diff_exp = None # TODO LATER
+
+                else:
+                    u = root_node.right_node # u(x)
+                    diff_exp = derivatives.trignometric(fn, arg = parsing.CollapseTree(u)) # f'(u(x)): Need to collapse u(x) as var: str
+
+                new_node  = Node('*', REFERENCE['dtype']['optr']) # f'(u(x)) * u'(x)
+                new_node.left_node = Node(diff_exp, REFERENCE['dtype']['complex'])
+                new_node.right_node = Differentiate(u, var)
+
+                return new_node
+
+
+
         if root_val ==  var:
             root_val = derivatives.var() # Returns 1 always
         else: # Constant

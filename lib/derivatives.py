@@ -21,8 +21,37 @@ def const_power_var(const, var:str):
     "**d(c^x) / dx = (c^x)\*log_e(c)**"
     return f"({str(const)}^{var}) * log_e({str(const)})"
 
-def log_of_var(var:str, log_base = 'e'):
-    "**d(log_a(x)) / dx = 1 / x \* (log_e(a))**"
+def log_of_var(var:str, arg: str, base = 'e'):
+    "**d(log_a(x)) / dx = 1 / x \* (log_e(a)). Uses change of log base formulae if `base != 'e'`.**"
+    if arg != var: # Case: log_...(const)
+        return const() # Returns 0
+
+    if base == 'e': # Case: log_e(...)
+        return f"1 / ({arg})"
+    
+    return f"1 / ({arg} * log_e({base}))" # Case: log_...(...)
+
+def trignometric(fn: str, arg:str):
+    if fn == 'sin':
+        return f"cos({arg})"
+
+    elif fn == 'cos':
+        return f"-sin({arg})"
+
+    elif fn == 'tan':
+        return f"(sec({arg})) ^ 2"
+
+    elif fn == 'cosec':
+        return f"-cosec({arg}) * cot({arg})"
+
+    elif fn == 'sec':
+        return f"sec({arg}) * tan({arg})"
+
+    elif fn == 'cot':
+        return f"(-cosec({arg})) ^ 2"
+
+    else:
+        print('ERR. INVALID TRIG FUNCTION.')
 
 
 
