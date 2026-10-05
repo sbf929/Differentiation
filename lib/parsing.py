@@ -1,25 +1,11 @@
 from .data_struct import Tree, Node
+from .CONFIG import ref as REFERENCE
 
-ref = {
-    'optr': {
-        '^': {'precedence': 3},
-        '*': {'precedence': 2},
-        '/': {'precedence': 2},
-        '+': {'precedence': 1},
-        '-': {'precedence': 1},
-    },
 
-    'brackets': {
-        '(': ')', 
-    },
-
-    'const': ['pi', 'e'],
-}
-
-def wrapped_bracket_remover(exp: str):
+def wrapped_bracket_remover(exp: str) -> str:
     """Removes wrapping brackets if they enclose the entire expression."""
 
-    if exp[0] != '(' or exp[-1] != ')':
+    if exp[0] != '(' or exp[-1] != ')': # NO changes to be made if the first and last character arent brackets
         return exp
 
     bracket_count = 0
@@ -32,13 +18,14 @@ def wrapped_bracket_remover(exp: str):
             bracket_count -= 1
 
         # Outer bracket closed before the expression ended.
-        if bracket_count == 0 and i != len(exp) - 1:
+        if bracket_count == 0 and i != len(exp) - 1: # Needed for cases such as exp = '(x + 5) + (x - 6)'
             return exp
 
-    return exp[1:-1]
+    return exp[1:-1] # Returns str with the 2(start and end) brackets removed
 
 # The bracket checking is issue in case of expression wrapped inside racket returs None instead of index
-def find_root_operation(exp:str):
+def find_root_operation(exp:str) -> int:
+    "Returns the index of the **root operator** in `exp`."
     root_idx = None # OUTPUT
 
     temp_precedence = 999
@@ -53,18 +40,21 @@ def find_root_operation(exp:str):
             bracket_count -= 1
 
         # Check if operator and only if not in a bracket heirarchy
-        if bracket_count == 0 and c in ref['optr'].keys():
+        if bracket_count == 0 and c in REFERENCE['operator'].keys():
             # Check if precedence is lower than the curent selected:
-            if ref['optr'][c]['precedence'] < temp_precedence:
+            if REFERENCE['operator'][c]['precedence'] < temp_precedence:
                 root_idx = i
-                temp_precedence = ref['optr'][c]['precedence'] # Update lowest predecence temp
+                temp_precedence = REFERENCE['operator'][c]['precedence'] # Update lowest predecence temp
 
     return root_idx
 
 
+def resolve_function(exp: str) -> Node:
+    """Resolves function: f(u(x)) to f(x) --> u(x). (Only limited to 1 term so it does not parse u(x))"""
+
 def parse(exp: str) -> Node:
     """
-    Generates a Child <- Node -> Child for given `exp` based on the root operator in it. Returns `Node`.
+    Generates a Child <- Node -> Child for given `exp` based on the root operator in it. Returns `Node`. For parsing one single term.
     """
     # Dealing with barckets:
     exp = exp.strip()
@@ -79,18 +69,20 @@ def parse(exp: str) -> Node:
 
     root_optr = exp[root_optr_idx] # get the root operator from the exp string
 
-    main_node = Node(root_optr, 'optr') # return this Node
+    new_node = Node(root_optr, 'optr') # return this Node
 
     # Attach the rest of the expression as children Nodes:
     # partition = exp.partition(root_optr) NOT TO BE USED AS IT TAKES THE FIRST INSTANCE OF THE OPERATOR INSTEAD OF THE SPECIFIED INDEX
     # USE INDEXING INSTEAD
 
-    main_node.left_node = Node(exp[:root_optr_idx], 'complex')
-    main_node.right_node = Node(exp[root_optr_idx + 1:], 'complex')
+    new_node.left_node = Node(exp[:root_optr_idx], 'complex')
+    new_node.right_node = Node(exp[root_optr_idx + 1:], 'complex')
 
-    return main_node
+    return new_node
 
-def Parser(exp: str) -> Node:
+
+
+def CreateTree(exp: str) -> Node:
     "Returns the fully parsed `exp` as `Node`. **Recursive**"
     #print("Parsing:", exp)
 
@@ -103,14 +95,21 @@ def Parser(exp: str) -> Node:
         return node
 
     # Parse left subtree:
-    node.left_node = Parser(node.left_node.value)
+    node.left_node = CreateTree(node.left_node.value)
 
     # Parse right subtree:
-    node.right_node = Parser(node.right_node.value)
+    node.right_node = CreateTree(node.right_node.value)
 
     return node
 
-# THIS THING IS NOT WORKING: 
+
+
+
+
+
+
+
+# THIS THING IS NOT WORKING: WILL LATER MOVE IN /math module 
 def clean(node: Node) -> Node:
     """
         Cleans Tree structure for better visualization and performance:
@@ -134,7 +133,7 @@ def clean(node: Node) -> Node:
 
     # Cleaning current node (The node's children have NO subchildren now):
     term = '/=-4'
-    if node.left_node.value not in ref['optr'].keys() and node.right_node.value not in ref['optr'].keys():  
+    if node.left_node.value not in REFERENCE['operator'].keys() and node.right_node.value not in REFERENCE['operator'].keys():  
         term = f"{node.left_node.value} {node.value} {node.right_node.value}"
 
     try:

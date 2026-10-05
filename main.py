@@ -8,7 +8,7 @@ def main():
         exp = input("!#> ")
 
         try:
-            exp_tree = parser.Parser(exp) # Expression Tree
+            exp_tree = parser.CreateTree(exp) # Expression Tree
             diff_tree = diff.Differentiate(exp_tree, 'x') # Differential
             clean_diff_tree = parser.clean(diff_tree) # Cleaned
             print("   ", parser.CollapseTree(clean_diff_tree), '\n', ('_' * 150), "\n") # Collapsed

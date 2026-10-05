@@ -19,10 +19,10 @@ def Differentiate(root_node: Node, var: str) -> Node:
 
         if base == var: # x ^ n
             #print("Case 1.")
-            return parsing.Parser(derivatives.power_of_var(base, pow)) # Returns Node
+            return parsing.CreateTree(derivatives.power_of_var(base, pow)) # Returns Node
         
         elif base == 'e' and pow == var: # e ^ n
-            return parsing.Parser(derivatives.e_of_var(pow)) # Returns Node
+            return parsing.CreateTree(derivatives.e_of_var(pow)) # Returns Node
 
         elif base != 'e' and pow == var: # a ^ x (TODO later as log is not done yet)
             return "ERR"
