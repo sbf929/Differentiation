@@ -49,58 +49,98 @@ def find_root_operation(exp:str) -> int:
     return root_idx
 
 
-def resolve_function(exp: str) -> Node:
-    """Resolves function: f(u(x)) to f(x) --> u(x). (Only limited to 1 term so it does not parse u(x))"""
+def resolve_function(exp: str) -> Node | None:
+    """Resolves function: f(u(x)) to f(x) --> u(x). (Only limited to 1 term so it does not parse u(x))\nFor a non function return `None`."""
+    new_node = None
+    bracket_depth = 0
+    bracket_found = False
+    start_i = None
+    end_i = None
+
+    # Identifying f(u(x)):
+    for fn in REFERENCE['function'].keys():
+        if exp.startswith(fn): # f is found
+            # Find u(x):
+            for i, c in enumerate(exp):
+                if c == '(':
+                    bracket_depth += 1
+
+                    if not bracket_found: # u starts from here
+                        start_i = i
+                        bracket_found = True
+
+                if c == ')':
+                    bracket_depth -= 1
+
+                if bracket_found and bracket_depth == 0:
+                    end_i = i  
+                    break
+
+            u = exp[start_i + 1:end_i]
+            f = exp[:start_i]
+
+            # Create Node:
+            new_node = Node(f, REFERENCE['dtype']['fn'])
+
+            if fn == 'log_': # Special case for log (2 parameters)
+                # TODO THIS NEEDS TO BE WORKED LATER ON AS IT CANNOT HANDLE BASES such as 40, 100 etc
+                base = exp[4]
+                new_node.left_node = Node(base, REFERENCE['dtype']['leaf'])
+
+            new_node.right_node = Node(u, REFERENCE['dtype']['complex'])
+
+
+    return new_node
 
 def parse(exp: str) -> Node:
     """
     Generates a Child <- Node -> Child for given `exp` based on the root operator in it. Returns `Node`. For parsing one single term.
     """
-    # Dealing with barckets:
+    # Dealing with barckets and whitespaces:
     exp = exp.strip()
     exp = wrapped_bracket_remover(exp)
 
     # Initialize tree with master nodes and its children:
     root_optr_idx = find_root_operation(exp)
 
-    if root_optr_idx is None: # No operator found in exp
-        return Node(exp, 'base') # Change its type to `base`
+    if root_optr_idx is None: # No operator found in exp (Can be a function or a leaf)
+        # Check if function:
+        new_node = resolve_function(exp)
+        if new_node is not None:
+            return new_node # returns 'fn' type node
+        
+        else: # exp is not a function thus it is a leaf
+            return Node(exp, REFERENCE['dtype']['leaf']) # Returns 'leaf' type node
 
 
-    root_optr = exp[root_optr_idx] # get the root operator from the exp string
+    # If root operator is found make it the root node:
+    root_optr = exp[root_optr_idx] 
+    new_node = Node(root_optr, REFERENCE['dtype']['optr']) 
 
-    new_node = Node(root_optr, 'optr') # return this Node
+    # Attach rest of the expression to root node:
+    new_node.left_node = Node(exp[:root_optr_idx], REFERENCE['dtype']['complex'])
+    new_node.right_node = Node(exp[root_optr_idx + 1:], REFERENCE['dtype']['complex'])
 
-    # Attach the rest of the expression as children Nodes:
-    # partition = exp.partition(root_optr) NOT TO BE USED AS IT TAKES THE FIRST INSTANCE OF THE OPERATOR INSTEAD OF THE SPECIFIED INDEX
-    # USE INDEXING INSTEAD
-
-    new_node.left_node = Node(exp[:root_optr_idx], 'complex')
-    new_node.right_node = Node(exp[root_optr_idx + 1:], 'complex')
-
-    return new_node
+    return new_node # Return 'optr' type node
 
 
 
 def CreateTree(exp: str) -> Node:
     "Returns the fully parsed `exp` as `Node`. **Recursive**"
-    #print("Parsing:", exp)
+    new_node = parse(exp)
 
-    node = parse(exp)
-
-    #print("Result:", node.value, node.dtype)
-
-    # For base:
-    if node.dtype == 'base':
-        return node
+    if new_node.dtype == REFERENCE['dtype']['leaf']:
+        return new_node # If the node is a leaf 
 
     # Parse left subtree:
-    node.left_node = CreateTree(node.left_node.value)
+    if new_node.left_node:
+        new_node.left_node = CreateTree(new_node.left_node.value)
 
     # Parse right subtree:
-    node.right_node = CreateTree(node.right_node.value)
+    if new_node.right_node:
+        new_node.right_node = CreateTree(new_node.right_node.value)
 
-    return node
+    return new_node
 
 
 
