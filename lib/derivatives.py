@@ -19,16 +19,13 @@ def e_of_var(var:str):
 
 def const_power_var(const, var:str):
     "**d(c^x) / dx = (c^x)\*log_e(c)**"
-    return f"({str(const)}^{var}) * log_e({str(const)})"
+    return f"({const}^{var}) * log_e({str(const)})"
 
-def log_of_var(var:str, arg: str, base = 'e'):
+def logarithm(var:str, arg: str, base = 'e'):
     "**d(log_a(x)) / dx = 1 / x \* (log_e(a)). Uses change of log base formulae if `base != 'e'`.**"
-    if arg != var: # Case: log_...(const)
-        return const() # Returns 0
-
-    if base == 'e': # Case: log_e(...)
+    if base == 'e': # Case: d/dx[log_e(x)] = 1/x
         return f"1 / ({arg})"
-    
+
     return f"1 / ({arg} * log_e({base}))" # Case: log_...(...)
 
 def trignometric(fn: str, arg:str):

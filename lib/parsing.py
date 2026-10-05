@@ -4,24 +4,36 @@ from .CONFIG import ref as REFERENCE
 
 def wrapped_bracket_remover(exp: str) -> str:
     """Removes wrapping brackets if they enclose the entire expression."""
-
-    if exp[0] != '(' or exp[-1] != ')': # NO changes to be made if the first and last character arent brackets
-        return exp
-
-    bracket_count = 0
-
-    for i, c in enumerate(exp):
-        if c == '(':
-            bracket_count += 1
-
-        elif c == ')':
-            bracket_count -= 1
-
-        # Outer bracket closed before the expression ended.
-        if bracket_count == 0 and i != len(exp) - 1: # Needed for cases such as exp = '(x + 5) + (x - 6)'
+    while True:
+        if len(exp) < 2:
             return exp
 
-    return exp[1:-1] # Returns str with the 2(start and end) brackets removed
+        if exp[0] != '(' or exp[-1] != ')': # NO changes to be made if the first and last character arent brackets
+            return exp
+
+        # Real stuff now:
+        bracket_count = 0
+        wrapped = True
+
+        for i, c in enumerate(exp):
+
+            if c == '(':
+                bracket_count += 1
+
+            elif c == ')':
+                bracket_count -= 1
+
+            # Outer bracket closes before expression ends
+            if bracket_count == 0 and i != len(exp) - 1:
+                wrapped = False
+                break
+
+        if not wrapped:
+            return exp
+
+        # Remove ONE outer layer and repeat
+        exp = exp[1:-1]
+
 
 # The bracket checking is issue in case of expression wrapped inside racket returs None instead of index
 def find_root_operation(exp:str) -> int:
@@ -62,7 +74,6 @@ def resolve_function(exp: str) -> Node | None:
 
     for fn in fn_sorted_lst:
         if exp.startswith(fn): # f is found
-            print("FUNCTION: ", fn)
             # Find u(x):
             for i, c in enumerate(exp):
                 if c == '(':
@@ -79,13 +90,8 @@ def resolve_function(exp: str) -> Node | None:
                     end_i = i  
                     break
 
-            print('START:', start_i)
-            print('END:', end_i)
-            u = exp[start_i + 1:end_i]
+            u = wrapped_bracket_remover(exp[start_i + 1:end_i])
             f = exp[:start_i]
-
-            print('U:', u)
-            print('F', f)
 
             # Create Node:
             new_node = Node(f, REFERENCE['dtype']['fn'])
@@ -217,6 +223,11 @@ def CollapseTree(node: Node) -> str:
         return node.value
 
     # Function:
+    if node.value == 'log_': # SPECIAL EDGE CASE FOR log
+            right = CollapseTree(node.right_node)
+            base = node.left_node.value
+            return f"{node.value}{base}({right})"
+    
     if node.left_node is  None and node.right_node is not None:
         right = CollapseTree(node.right_node)
         return f"{node.value}({right})"

@@ -15,27 +15,26 @@ def Differentiate(root_node: Node, var: str) -> Node:
     root_val = root_node.value
     
     # Basic operations:
-    if root_val == '^':
-        base = root_node.left_node.value
-        pow = root_node.right_node.value
+    if root_val == '^': #TODO 
+        u = root_node.left_node # Base
+        v = root_node.right_node # Power
 
-        if base == var: # x ^ n
-            #print("Case 1.")
-            return parsing.CreateTree(derivatives.power_of_var(base, pow)) # Returns Node
-        
-        elif base == 'e' and pow == var: # e ^ n
-            return parsing.CreateTree(derivatives.e_of_var(pow)) # Returns Node
+        u_pow_v = root_node # (u ^ v)
 
-        elif base != 'e' and pow == var: # a ^ x (TODO later as log is not done yet)
-            return "ERR"
+        dv = Differentiate(v, var) # dv
+        du = Differentiate(u, var)
 
-        # Extra cases:
-        elif base == var and pow.strip() == '1': # For convering 'x ^ 1' to 'x'
-            return Node(var, 'base')
-        
-        else: # In case of complex exponential or constant to constant
-            print("COMPLEX CASE!!!") # Need log function for this
-            
+        ln_u = Node('log_', REFERENCE['dtype']['fn']) # ln(u)
+        ln_u.left_node = Node('e', REFERENCE['dtype']['leaf'])
+        ln_u.right_node = u
+
+        # Building: (u^v) * ((dv * ln(u)) + (v * (du/u)))
+        new_node = parsing.CreateTree(f"""({parsing.CollapseTree(u_pow_v)}) * 
+                                                    (({parsing.CollapseTree(dv)} * {parsing.CollapseTree(ln_u)}) + 
+                                                    ({parsing.CollapseTree(v)} * ({parsing.CollapseTree(du)} / {parsing.CollapseTree(u)})))""")
+
+        return new_node
+           
     elif root_val == '*':
         u = root_node.left_node
         v = root_node.right_node
@@ -99,12 +98,14 @@ def Differentiate(root_node: Node, var: str) -> Node:
     else: # Can be x / const / function:
         # Functions: Need to pass (u(x)) instead of var:
         fn_sorted_lst = sorted(REFERENCE['function'].keys(), key=len, reverse=True) # Sorted list had to be added as 'cosec' and 'cos' mixed up
-        
+
         for fn in fn_sorted_lst:
             if root_val.startswith(fn): # if function
                 if root_val == 'log_': # Special case for log_
                     u = root_node.right_node
-                    diff_exp = None # TODO LATER
+                    base = root_node.left_node.value
+                    print("BASE:", base)
+                    diff_exp = derivatives.logarithm(var, arg = parsing.CollapseTree(u), base = base) # TODO LATER
 
                 else:
                     u = root_node.right_node # u(x)
