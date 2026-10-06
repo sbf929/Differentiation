@@ -107,9 +107,13 @@ def Differentiate(root_node: Node, var: str) -> Node:
                     print("BASE:", base)
                     diff_exp = derivatives.logarithm(var, arg = parsing.CollapseTree(u), base = base) # TODO LATER
 
-                else:
+                elif REFERENCE['function'][fn]['ftype'] == 'trig': # Trignometric functions
                     u = root_node.right_node # u(x)
                     diff_exp = derivatives.trignometric(fn, arg = parsing.CollapseTree(u)) # f'(u(x)): Need to collapse u(x) as var: str
+
+                elif REFERENCE['function'][fn]['ftype'] == 'inv trig': # Inverse trignometric functions
+                    u = root_node.right_node # u(x)
+                    diff_exp = derivatives.inv_trignometric(fn, arg = parsing.CollapseTree(u))
 
                 new_node  = Node('*', REFERENCE['dtype']['optr']) # f'(u(x)) * u'(x)
                 new_node.left_node = Node(diff_exp, REFERENCE['dtype']['complex'])

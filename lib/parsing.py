@@ -54,9 +54,16 @@ def find_root_operation(exp:str) -> int:
         # Check if operator and only if not in a bracket heirarchy
         if bracket_count == 0 and c in REFERENCE['operator'].keys():
             # Check if precedence is lower than the curent selected:
-            if REFERENCE['operator'][c]['precedence'] < temp_precedence:
+            precedence = REFERENCE['operator'][c]['precedence']
+            associativity = REFERENCE['operator'][c]['associativity']
+
+            if precedence < temp_precedence:
                 root_idx = i
-                temp_precedence = REFERENCE['operator'][c]['precedence'] # Update lowest predecence temp
+                temp_precedence = precedence
+
+            elif precedence == temp_precedence and associativity == 'left':
+                root_idx = i
+                    
 
     return root_idx
 

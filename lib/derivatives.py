@@ -48,8 +48,29 @@ def trignometric(fn: str, arg:str):
         return f"(-cosec({arg})) ^ 2"
 
     else:
-        print('ERR. INVALID TRIG FUNCTION.')
+        print('ERR. INVALID TRIGNOMETRIC FUNCTION.')
 
+def inv_trignometric(fn: str, arg:str):
+    if fn == 'arcsin':
+        return f"1 / ((1 - {arg}^2) ^ 0.5)"
+
+    elif fn == 'arccos':
+        return f"-1 / ((1 - {arg}^2) ^ 0.5)"
+
+    elif fn == 'arctan':
+        return f"1 / (1 + {arg}^2)"
+
+    elif fn == 'cosec':
+        return f"-1 / (x * (({arg}^2) - 1) ^ 0.5)"
+
+    elif fn == 'arcsec':
+        return f"1 / (x * (({arg}^2) - 1) ^ 0.5)"
+
+    elif fn == 'arccot':
+        return f"-1 / (1 + {arg}^2)"
+
+    else:
+        print('ERR: INVALID INVERSE TRIGNOMETRIC FUNCTION.')
 
 
 
