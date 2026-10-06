@@ -2,8 +2,8 @@ from .data_struct import Tree, Node
 from .CONFIG import ref as REFERENCE
 
 
-def wrapped_bracket_remover(exp: str) -> str:
-    """Removes wrapping brackets if they enclose the entire expression."""
+def remove_wrapped_brackets(exp: str) -> str:
+    """Removes ALL wrapping brackets if they enclose the entire expression."""
     while True:
         if len(exp) < 2:
             return exp
@@ -33,7 +33,6 @@ def wrapped_bracket_remover(exp: str) -> str:
 
         # Remove ONE outer layer and repeat
         exp = exp[1:-1]
-
 
 # The bracket checking is issue in case of expression wrapped inside racket returs None instead of index
 def find_root_operation(exp:str) -> int:
@@ -97,7 +96,7 @@ def resolve_function(exp: str) -> Node | None:
                     end_i = i  
                     break
 
-            u = wrapped_bracket_remover(exp[start_i + 1:end_i])
+            u = remove_wrapped_brackets(exp[start_i + 1:end_i])
             f = exp[:start_i]
 
             # Create Node:
@@ -121,7 +120,7 @@ def parse(exp: str) -> Node:
     """
     # Dealing with barckets and whitespaces:
     exp = exp.strip()
-    exp = wrapped_bracket_remover(exp)
+    exp = remove_wrapped_brackets(exp)
 
     # Initialize tree with master nodes and its children:
     root_optr_idx = find_root_operation(exp)
@@ -145,7 +144,6 @@ def parse(exp: str) -> Node:
     new_node.right_node = Node(exp[root_optr_idx + 1:], REFERENCE['dtype']['complex'])
 
     return new_node # Return 'optr' type node
-
 
 
 def CreateTree(exp: str) -> Node:
