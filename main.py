@@ -1,4 +1,5 @@
-from lib import differentiate as diff, parsing as parser
+from lib import parsing as parser
+from lib.calculus import differentiate as diff
 
 def main():
     print("Welcome to Differential Calculator 1.0.1.\nCopyright (C) 2026 TIU, Inc.\nq() to quit.\n")
