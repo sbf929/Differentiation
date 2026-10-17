@@ -39,5 +39,14 @@ ref = {
 
         
 
+    },
+
+    'Set Symbols': {
+        'N': {'order': 1}, # Natural
+        'W': {'order': 2}, # Whole
+        'Z': {'order': 3}, # Integers
+        'Q': {'order': 4}, # Rational Numbers
+        'I': {'order': 4}, # Irrational Numbers
+        'R': {'order': 5}, # Real
     }
 }
